@@ -2,22 +2,63 @@ import csv
 
 # setting path
 
-main_path = 'E:/# PRACA/Geometric/Lokale Cyb/Lokale'
+# main_path = 'E:/# PRACA/Geometric/Lokale Cyb/Lokale'
+main_path = 'C:/WORKZONE/!Private/CsvReader'
 
 # variables
 
 result_dict = {}
 
-def nofile():
-    print(str(i)+'.csv', 'nie istnieje')
+def place_area_parser(string):
+    place_area = float(string.split(';')[2])
+    print(place_area)
+    return(place_area)
 
-# def bricscadfile(filepath):
-#     with open(file_path, 'r', newline='\n') as file:
-#             reader = csv.reader(file, delimiter=';')
-#             for j in reader:
-#                 print(j)
-#                 temp_list.append(eval(j[0]))
-#             print(temp_list)
+def room_area_parser(string):
+    room_area = float(string.split(';')[1])
+    print(room_area)
+    return(room_area)
+
+def balcony_area_parser(string):
+    parse1 = string.split(';')[1]
+    balcony_area = float(parse1.split('}')[0])
+    print(balcony_area)
+    return(balcony_area)
+
+
+def nofile():
+    place_data = {}
+    place_data['room_area'] = []
+    place_data['place_area'] = 0.0
+    place_data['balcony_area'] = []
+    return place_data
+
+def bricscadfile(filepath):
+    with open(filepath, 'r', newline='\n') as file:
+        reader = csv.reader(file, delimiter=';')
+        csvFileArray = []
+        for row in reader:
+            csvFileArray.append(row)
+        place_area = place_area_parser(csvFileArray[16][0])
+        place_data = {}
+        room_area = []
+        balcony_area = []
+        file.seek(0)
+        for j in reader:
+            # print(j)
+            if j[0] != ' ':
+                room_area.append(room_area_parser(j[0]))
+            else:
+                break
+        # for h in csvFileArray[17:]:
+        #     if h[0] != ' ' and h[0] != 'x':
+        #         balcony_area.append(float(h[0]))
+        #     elif h[0] != ' ':
+        #         balcony_area.append(h[0])
+        place_data['room_area'] = room_area
+        place_data['place_area'] = place_area
+        place_data['balcony_area'] = balcony_area
+        return place_data
 
 def autocadfile(filepath):
     with open(filepath, 'r', newline='\n') as file:
@@ -25,21 +66,22 @@ def autocadfile(filepath):
         csvFileArray = []
         for row in reader:
             csvFileArray.append(row)
-        print(csvFileArray[16][0])
-        place_area = csvFileArray[16][0]
-        file.seek(0)
-        # place_data = {}
+        place_area = float(csvFileArray[16][0])
+        place_data = {}
         room_area = []
         balcony_area = []
+        file.seek(0)
         for j in reader:
-            print(j)
+            # print(j)
             if j[0] != ' ':
-                room_area.append(eval(j[0]))
+                room_area.append(float(j[0]))
             else:
                 break
-        print(next(reader))
-        for h in csvFileArray:
-            print(h)
+        for h in csvFileArray[17:]:
+            if h[0] != ' ' and h[0] != 'x':
+                balcony_area.append(float(h[0]))
+            elif h[0] != ' ':
+                balcony_area.append(h[0])
         place_data['room_area'] = room_area
         place_data['place_area'] = place_area
         place_data['balcony_area'] = balcony_area
@@ -47,19 +89,23 @@ def autocadfile(filepath):
 
 
 for i in range(1, 130):
-    file_path = main_path + '/Tabelki/' + str(i) + '.csv'
+    # file_path = main_path + '/Tabelki/' + str(i) + '.csv'
+    file_path = main_path + '/Examples/' + str(i) + '.csv'
+    local_number = str(i)
     try:
         with open(file_path, 'r', newline='\n') as file:
             reader = csv.reader(file, delimiter=';')
             sample = next(reader)[0]
             if sample[:3] == '\\C7':
-                print('chuj')
+                result_dict[local_number] = bricscadfile(file_path)
             else:
-                place_list = autocadfile(file_path)
-                print(place_list)
+                result_dict[local_number] = autocadfile(file_path)
     except FileNotFoundError:
-        nofile()
+        result_dict[local_number] = nofile()
 
 for i in result_dict:
-    with open(main_path + '/zestawienie.csv', 'w', newline='\n') as result_file:
-        writer = csv.DictWriter(file, delimiter=';', fieldnames=fieldnames)
+    print(i, result_dict[i])
+
+# for i in result_dict:
+#     with open(main_path + '/zestawienie.csv', 'w', newline='\n') as result_file:
+#         writer = csv.DictWriter(file, delimiter=';', fieldnames=fieldnames)
